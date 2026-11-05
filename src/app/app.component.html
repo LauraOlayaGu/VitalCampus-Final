@@ -1,0 +1,79 @@
+<div class="app-layout">
+  
+  <!-- BARRA LATERAL (VISIBLE CUANDO HAY USUARIO LOGUEADO) -->
+  <aside class="sidebar" *ngIf="usuarioActual$ | async as user">
+    <div class="sidebar-top">
+      <div class="brand">
+        <span class="logo">🌱</span>
+        <div class="brand-text">
+          <span class="title">VitalCampus</span>
+          <small class="version">V 1.0 • Bienestar</small>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a routerLink="/resumen" routerLinkActive="active" class="nav-item">
+          <span class="nav-label">📊 Resumen</span>
+          <span *ngIf="(alertasNoLeidasCount$ | async) as count" class="nav-badge">
+            {{ count }}
+          </span>
+        </a>
+
+        <a routerLink="/sueno" routerLinkActive="active" class="nav-item">
+          <span class="nav-label">🌙 Sueño</span>
+        </a>
+
+        <a routerLink="/asignaturas" routerLinkActive="active" class="nav-item">
+          <span class="nav-label">📚 Asignaturas</span>
+        </a>
+
+        <a routerLink="/entregas" routerLinkActive="active" class="nav-item">
+          <span class="nav-label">📝 Entregas</span>
+          <span *ngIf="(entregasPendientesCount$ | async) as count" class="nav-badge badge-blue">
+            {{ count }}
+          </span>
+        </a>
+
+        <a routerLink="/estudio" routerLinkActive="active" class="nav-item">
+          <span class="nav-label">⏱️ Horas de Estudio</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- USUARIO LOGUEADO Y SU CARRERA SELECCIONADA -->
+    <div class="user-profile-container">
+      <div class="user-profile">
+        <div class="avatar">{{ obtenerIniciales(user.nombre) }}</div>
+        <div class="user-details">
+          <strong class="user-name">{{ user.nombre }}</strong>
+          <small class="user-email">{{ user.email }}</small>
+          <span class="badge-fet">🎓 {{ user.carrera || 'Programa Académico FET' }}</span>
+        </div>
+      </div>
+
+      <button (click)="cerrarSesion()" class="btn-logout" title="Cerrar Sesión">
+        🚪 Cerrar Sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="main-content" [class.full-width]="!(usuarioActual$ | async)">
+    <div 
+      *ngIf="vitalCampusService.toastNotificacion$ | async as toast" 
+      class="global-toast-banner" 
+      [ngClass]="{
+        'toast-critical': toast.tipo === 'CRITICA',
+        'toast-warning': toast.tipo === 'ADVERTENCIA',
+        'toast-info': toast.tipo === 'INFO'
+      }">
+      <div class="toast-body">
+        <strong>{{ toast.titulo }}</strong>
+        <p>{{ toast.mensaje }}</p>
+      </div>
+      <button (click)="vitalCampusService.cerrarToastGlobal()" class="btn-close-toast">✕</button>
+    </div>
+
+    <router-outlet></router-outlet>
+  </main>
+</div>

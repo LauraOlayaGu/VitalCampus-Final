@@ -1,0 +1,102 @@
+<div class="auth-container">
+  <div class="auth-box card">
+    
+    <div class="auth-header">
+      <div class="brand">
+        <span class="logo">🌱</span>
+        <h2>VitalCampus</h2>
+      </div>
+      <p class="subtitle">Plataforma Integral de Bienestar Estudiantil</p>
+    </div>
+
+    <!-- PESTAÑAS PARA CAMBIAR ENTRE MODO LOGIN Y REGISTRO -->
+    <div class="auth-tabs">
+      <button 
+        type="button" 
+        [class.active]="isLoginMode" 
+        (click)="cambiarModo(true)" 
+        class="tab-btn">
+        🔐 Iniciar Sesión
+      </button>
+      <button 
+        type="button" 
+        [class.active]="!isLoginMode" 
+        (click)="cambiarModo(false)" 
+        class="tab-btn">
+        ✨ Crear Cuenta
+      </button>
+    </div>
+
+    <!-- MENSAJES DE ALERTA -->
+    <div *ngIf="errorMensaje" class="alert alert-error">
+      ⚠️ {{ errorMensaje }}
+    </div>
+
+    <div *ngIf="exitoMensaje" class="alert alert-success">
+      {{ exitoMensaje }}
+    </div>
+
+    <!-- FORMULARIO DE AUTENTICACIÓN -->
+    <form (ngSubmit)="onSubmit()">
+
+      <!-- CAMPO NOMBRE (SOLO EN MODO REGISTRO) -->
+      <div class="form-group" *ngIf="!isLoginMode">
+        <label>Nombre Completo</label>
+        <input 
+          type="text" 
+          [(ngModel)]="nombre" 
+          name="nombre" 
+          placeholder="Ej. Laura Daniela Olaya" 
+          class="form-control" />
+      </div>
+
+      <!-- CAMPO CORREO INSTITUCIONAL CON ENTIDAD HTML &#64; -->
+      <div class="form-group">
+        <label>Correo Institucional (&#64;fet.edu.co)</label>
+        <input 
+          type="email" 
+          [(ngModel)]="correo" 
+          name="correo" 
+          placeholder="tu_correo&#64;fet.edu.co" 
+          class="form-control" />
+      </div>
+
+      <!-- CAMPO CARRERA / PROGRAMA (SOLO EN MODO REGISTRO) -->
+      <div class="form-group" *ngIf="!isLoginMode">
+        <label>Programa Académico / Carrera</label>
+        <select [(ngModel)]="carrera" name="carrera" class="form-control">
+          <option *ngFor="let c of carrerasDisponibles" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+
+      <!-- CAMPO CONTRASEÑA -->
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input 
+          type="password" 
+          [(ngModel)]="password" 
+          name="password" 
+          placeholder="••••••••" 
+          class="form-control" />
+      </div>
+
+      <!-- CONFIRMAR CONTRASEÑA (SOLO EN MODO REGISTRO) -->
+      <div class="form-group" *ngIf="!isLoginMode">
+        <label>Confirmar Contraseña</label>
+        <input 
+          type="password" 
+          [(ngModel)]="confirmPassword" 
+          name="confirmPassword" 
+          placeholder="••••••••" 
+          class="form-control" />
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" [disabled]="cargando">
+        <span *ngIf="!cargando">{{ isLoginMode ? '🚀 Ingresar al Sistema' : '🎓 Crear Mi Cuenta' }}</span>
+        <span *ngIf="cargando">⏳ Procesando...</span>
+      </button>
+
+    </form>
+
+  </div>
+</div>

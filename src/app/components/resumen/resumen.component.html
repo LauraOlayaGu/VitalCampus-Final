@@ -1,0 +1,169 @@
+<div class="container">
+  
+  <!-- CABECERA PRINCIPAL CON CAMPANA Y DROPDOWN -->
+  <div class="header-box">
+    <div class="header-text">
+      <h2>📊 Resumen General de Bienestar</h2>
+      <p class="subtitle">Visión consolidada de sueño, carga académica y alertas preventivas.</p>
+    </div>
+
+    <div class="alerts-wrapper">
+      <button (click)="togglePanelAlertas()" class="btn-bell" title="Centro de Alertas">
+        🔔
+        <span *ngIf="alertas.length > 0" class="bell-badge">
+          {{ alertas.length }}
+        </span>
+      </button>
+
+      <!-- DROPDOWN CENTRO DE ALERTAS -->
+      <div *ngIf="mostrarPanelAlertas" class="alerts-dropdown-panel">
+        <div class="dropdown-header">
+          <div class="header-title-box">
+            <span>🔔</span>
+            <strong>Centro de Alertas</strong>
+          </div>
+          <button (click)="vitalCampusService.limpiarTodasLasAlertas()" class="btn-clean-sm">
+            ✓ Ocultar leídas
+          </button>
+        </div>
+
+        <!-- WIDGET DE RIESGO DE SOBRECARGA -->
+        <div class="risk-widget-box">
+          <div class="risk-header">
+            <span><strong>Riesgo Actual: {{ porcentajeRiesgo }}%</strong></span>
+            <span class="risk-status" [class.risk-high]="porcentajeRiesgo >= 60">
+              {{ porcentajeRiesgo >= 60 ? '🚨 Sobrecarga alta' : (porcentajeRiesgo >= 30 ? '⚠️ Carga moderada' : '✅ Estable') }}
+            </span>
+          </div>
+
+          <div class="risk-progress-bar">
+            <div class="risk-fill" [style.width.%]="porcentajeRiesgo" [class.bg-danger]="porcentajeRiesgo >= 60"></div>
+          </div>
+
+          <!-- MENSAJE DE PAUSA EN CURSO O BOTÓN VISIBLE A PARTIR DE 10% DE RIESGO -->
+          <div *ngIf="pausaActivaEnCurso; else btnPausaTpl" class="pausa-activa-info">
+            <span>🛋️ <strong>¡Descansa!</strong> Pausa activa en curso:</span>
+            <span class="timer-tag">{{ formatearTiempoSegundos(segundosRestantesPausa) }} min</span>
+          </div>
+
+          <ng-template #btnPausaTpl>
+            <button 
+              *ngIf="porcentajeRiesgo >= 10" 
+              (click)="aplicarPausa15Min()" 
+              class="btn-pausa-30">
+              🛋️ Pausa 15 min (-{{ calcularReduccionPausa() }}%)
+            </button>
+          </ng-template>
+        </div>
+
+        <!-- LISTA DE ALERTAS RELEVANTES -->
+        <div class="dropdown-body">
+          <div *ngFor="let a of alertas" class="alert-dropdown-item">
+            <div class="alert-content-left">
+              <span class="alert-type-icon">{{ a.icono || '⚠️' }}</span>
+              <div class="alert-info">
+                <strong class="alert-title">{{ a.titulo }}</strong>
+                <small class="alert-desc">{{ a.mensaje }}</small>
+              </div>
+            </div>
+            <button (click)="descartarAlertaIndividual(a.id)" class="btn-dismiss-alert" title="Marcar como leída">
+              ✕
+            </button>
+          </div>
+
+          <div *ngIf="alertas.length === 0" class="empty-alerts">
+            🎉 Sin notificaciones pendientes.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TARJETAS KPIS -->
+  <div class="kpi-grid">
+    <div class="card kpi-card">
+      <span class="kpi-title">{{ dashboardData?.tituloSueno || '🌙 Sueño de Anoche' }}</span>
+      <div class="kpi-value">{{ dashboardData?.suenoAnoche || '0h' }}</div>
+      <small class="kpi-sub">Promedio semanal: {{ dashboardData?.promedioSueno || '0h' }}</small>
+    </div>
+
+    <div class="card kpi-card">
+      <span class="kpi-title">📚 Carga esta Semana</span>
+      <div class="kpi-value">{{ dashboardData?.cargaAcademica || '0%' }}</div>
+      <small class="kpi-sub">Nivel de carga: {{ dashboardData?.nivelCarga || 'Sin Asignaturas' }}</small>
+    </div>
+
+    <div class="card kpi-card cursor-pointer cookie-card" (click)="abrirGalleta()">
+      <span class="kpi-title">🥠 Galleta de la Fortuna</span>
+      <p class="cookie-text">{{ mensajeGalleta }}</p>
+      <small class="cookie-action">
+        {{ galletaAbierta ? '✨ ¡Haz clic para abrir otra!' : '👉 Haz clic para abrir tu fortuna' }}
+      </small>
+    </div>
+
+    <div class="card kpi-card">
+      <span class="kpi-title">⚡ Estrés Actual</span>
+      <div class="kpi-value">{{ dashboardData?.estresNivel || '0/5' }}</div>
+      <small class="kpi-sub">Estado: {{ dashboardData?.nivelEstres || 'Sin Riesgo' }}</small>
+    </div>
+  </div>
+
+  <!-- RECOMENDACIÓN PREVENTIVA DIARIA -->
+  <div class="card recommendation-card">
+    <strong>💡 Recomendación Preventiva Diaria</strong>
+    <p>{{ dashboardData?.recomendacion || 'Mantén el ritmo. Recuerda realizar pausas cortas durante tus sesiones de estudio.' }}</p>
+  </div>
+
+  <!-- GRID INFERIOR LADO A LADO -->
+  <div class="bottom-grid-section">
+    
+    <!-- TENDENCIA DE SUEÑO CON AJUSTE DE VIEWBOX Y MARGENES -->
+    <div class="card chart-card">
+      <h3>📈 Tendencia Semanal de Sueño</h3>
+      <div class="svg-chart-container">
+        <svg viewBox="0 0 380 140" preserveAspectRatio="xMidYMid meet" class="svg-graphic">
+          <defs>
+            <linearGradient id="peaksGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+
+          <path [attr.d]="pathAreaSvg" fill="url(#peaksGradient)" />
+          <path [attr.d]="pathLineaSvg" fill="none" stroke="#38bdf8" stroke-width="3" />
+
+          <g *ngFor="let p of diagramaPicos">
+            <circle [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" fill="#38bdf8" stroke="#0f172a" stroke-width="1.5" />
+            <text [attr.x]="p.x" y="132" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle">{{ p.dia }}</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- PRÓXIMAS ENTREGAS ACADÉMICAS -->
+    <div class="card upcoming-deliveries-card">
+      <div class="section-header">
+        <h3>📝 Próximas Entregas Académicas</h3>
+      </div>
+
+      <div class="deliveries-list" *ngIf="entregasProximas.length > 0; else noDeliveries">
+        <div *ngFor="let entrega of entregasProximas" class="delivery-item">
+          <div class="delivery-main">
+            <strong>{{ entrega.titulo }}</strong>
+            <small>📚 {{ entrega.asignatura || 'General' }} • Vence: {{ entrega.fechaLimite }}</small>
+          </div>
+
+          <div class="delivery-tag" [class.urgent-tag]="entrega.etiquetaTiempo === 'Hoy' || entrega.etiquetaTiempo === 'Mañana'">
+            ⏰ {{ entrega.etiquetaTiempo }}
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noDeliveries>
+        <p class="empty-text">🎉 ¡No tienes entregas pendientes programadas!</p>
+      </ng-template>
+    </div>
+
+  </div>
+
+</div>

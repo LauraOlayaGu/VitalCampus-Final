@@ -1,0 +1,102 @@
+<div class="page-container">
+  <div class="header-section">
+    <h2>📚 Gestión de Asignaturas y Horario</h2>
+    <p class="subtitle">Organiza tus materias, asigna sus días de clase y evalúa la carga académica semanal.</p>
+  </div>
+
+  <div *ngIf="exitoMsg" class="alert alert-success">{{ exitoMsg }}</div>
+
+  <!-- REGISTRO / EDICIÓN -->
+  <div class="card main-card">
+    <div class="card-header">
+      <h3>{{ editandoId ? '✏️ Editar Asignatura' : '+ Registrar Asignatura' }}</h3>
+    </div>
+    
+    <form [formGroup]="asignaturaForm" (ngSubmit)="onSubmit()" class="form-layout">
+      <div class="form-group full-width">
+        <label>Nombre de la Asignatura</label>
+        <input type="text" formControlName="nombre" class="form-control" placeholder="Ej. Bases de Datos II, Telemática..." />
+      </div>
+
+      <div class="form-group">
+        <label>Día de la Clase</label>
+        <select formControlName="diaClase" class="form-control select-input">
+          <option *ngFor="let dia of diasSemana" [value]="dia">{{ dia }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Hora de Inicio</label>
+        <input type="time" formControlName="horaInicio" class="form-control" />
+      </div>
+
+      <div class="form-group full-width">
+        <label>Carga Académica Percibida</label>
+        <div class="carga-selector">
+          <button type="button" *ngFor="let c of cargas"
+                  [class.active]="asignaturaForm.value.carga === c.valor"
+                  (click)="asignaturaForm.patchValue({ carga: c.valor })"
+                  class="btn-carga">
+            {{ c.etiqueta }}
+          </button>
+        </div>
+      </div>
+
+      <div class="form-actions full-width">
+        <button type="submit" [disabled]="asignaturaForm.invalid || guardando" class="btn btn-primary">
+          {{ editandoId ? 'Actualizar Asignatura' : 'Guardar Asignatura' }}
+        </button>
+        <button type="button" *ngIf="editandoId" (click)="cancelarEdicion()" class="btn btn-secondary">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- HORARIO SEMANAL DE CLASES -->
+  <div class="card main-card">
+    <div class="card-header">
+      <h3>📅 Horario Semanal de Clases</h3>
+    </div>
+    
+    <div class="schedule-grid">
+      <div *ngFor="let dia of diasSemana" class="day-column">
+        <div class="day-header">{{ dia }}</div>
+        <div class="day-body">
+          <div *ngFor="let clase of obtenerClasesPorDia(dia)" class="class-card">
+            <strong>{{ clase.nombre }}</strong>
+            <small>⏰ {{ clase.horaInicio }}</small>
+            <span class="carga-badge">{{ clase.carga || 'Media' }}</span>
+          </div>
+          <div *ngIf="obtenerClasesPorDia(dia).length === 0" class="empty-day">
+            Sin clases
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LISTADO GENERAL -->
+  <div class="card main-card">
+    <div class="card-header">
+      <h3>📑 Listado General de Asignaturas</h3>
+    </div>
+
+    <div *ngIf="asignaturas.length > 0; else noAsig" class="table-container">
+      <div *ngFor="let asig of asignaturas" class="asig-item">
+        <div class="asig-info">
+          <h4>{{ asig.nombre }}</h4>
+          <p>🗓️ {{ asig.diaClase }} &nbsp;•&nbsp; ⏰ {{ asig.horaInicio }} &nbsp;•&nbsp; Carga: <strong>{{ asig.carga || 'Media' }}</strong></p>
+        </div>
+        <div class="asig-actions">
+          <button (click)="editar(asig)" class="btn-icon" title="Editar">✏️</button>
+          <button (click)="eliminar(asig.id)" class="btn-icon text-danger" title="Eliminar">🗑️</button>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noAsig>
+      <p class="empty-text">No hay asignaturas registradas. Añade una arriba para armar tu horario.</p>
+    </ng-template>
+  </div>
+</div>

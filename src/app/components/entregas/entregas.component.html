@@ -1,0 +1,127 @@
+<div class="container">
+  
+  <!-- FORMULARIO DE REGISTRO DE ACTIVIDAD -->
+  <div class="card form-card">
+    <h3>✨ Registrar Nueva Actividad</h3>
+    
+    <div class="form-group">
+      <label>Tipo de Actividad</label>
+      <div class="type-selector">
+        <button 
+          type="button" 
+          [class.active]="tipoActividad === 'TRABAJO'" 
+          (click)="seleccionarTipo('TRABAJO')" 
+          class="btn-type">
+          📝 Trabajo / Taller
+        </button>
+        <button 
+          type="button" 
+          [class.active]="tipoActividad === 'PARCIAL'" 
+          (click)="seleccionarTipo('PARCIAL')" 
+          class="btn-type">
+          🎯 Parcial / Examen
+        </button>
+      </div>
+    </div>
+
+    <div class="grid-form">
+      <div class="form-group span-2">
+        <label>Título de la Actividad</label>
+        <input 
+          type="text" 
+          [(ngModel)]="titulo" 
+          placeholder="Ej. Parcial de Base de Datos, Taller 1..." 
+          class="form-control" />
+      </div>
+
+      <div class="form-group">
+        <label>Asignatura</label>
+        <select [(ngModel)]="asignaturaSeleccionada" class="form-control">
+          <option *ngFor="let a of asignaturasList" [value]="a.nombre">{{ a.nombre }}</option>
+          <option *ngIf="asignaturasList.length === 0" value="General">General</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha Límite</label>
+        <input type="date" [(ngModel)]="fechaLimite" class="form-control" />
+      </div>
+
+      <div class="form-group">
+        <label>Hora Límite</label>
+        <input type="time" [(ngModel)]="horaLimite" class="form-control" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Nivel de Estrés Percibido</label>
+      <div class="stress-selector">
+        <button 
+          *ngFor="let level of [1, 2, 3, 4, 5]" 
+          type="button" 
+          [class.selected]="estresPercibido === level" 
+          (click)="seleccionarEstres(level)" 
+          class="btn-stress">
+          ⚡ {{ level }}/5 {{ level >= 4 ? '🔥' : '' }}
+        </button>
+      </div>
+    </div>
+
+    <button (click)="guardarActividad()" class="btn btn-primary btn-block">
+      ➕ Guardar Actividad
+    </button>
+  </div>
+
+  <!-- LISTADO DE ENTREGAS PENDIENTES (SE BORRAN AUTOMÁTICAMENTE AL COMPLETARSE) -->
+  <div class="card list-card">
+    <div class="list-header">
+      <h3>📌 Entregas y Actividades Programadas</h3>
+      <span class="badge-count">{{ entregasPendientesList.length }} Pendientes</span>
+    </div>
+
+    <div class="grid-deliveries" *ngIf="entregasPendientesList.length > 0; else emptyList">
+      <div 
+        *ngFor="let e of entregasPendientesList" 
+        class="delivery-card" 
+        [class.card-urgent]="e.esUrgente">
+        
+        <div class="delivery-top">
+          <span class="badge-tag" [class.tag-parcial]="e.tipo === 'PARCIAL'">
+            {{ e.tipo === 'PARCIAL' ? '🎯 PARCIAL' : '📝 TRABAJO' }}
+          </span>
+          <span class="badge-pending">⏳ PENDIENTE</span>
+          <span class="badge-stress">⚡ Estrés Base: {{ e.estresPercibido }}/5</span>
+        </div>
+
+        <h4 class="delivery-title">{{ e.titulo }}</h4>
+        <p class="delivery-subject">📚 {{ e.asignatura }}</p>
+
+        <!-- BANNER DE ALERTA DE TIEMPO -->
+        <div *ngIf="e.mensajeAlerta" class="time-alert-box">
+          {{ e.mensajeAlerta }}
+        </div>
+
+        <div class="delivery-date">
+          🗓️ Vence: {{ e.fechaLimite | date:'mediumDate' }} • {{ e.horaLimite || '23:59' }}
+        </div>
+
+        <div class="delivery-actions">
+          <button (click)="marcarComoHecha(e.id)" class="btn-check-done">
+            ✔ Marcar Hecha
+          </button>
+          <button (click)="eliminarActividad(e.id)" class="btn-delete" title="Eliminar Actividad">
+            🗑️
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <ng-template #emptyList>
+      <div class="empty-box">
+        <p>🎉 ¡Excelente! No tienes entregas ni exámenes pendientes por realizar.</p>
+      </div>
+    </ng-template>
+  </div>
+
+</div>
